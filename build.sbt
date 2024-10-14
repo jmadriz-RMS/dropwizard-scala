@@ -4,11 +4,11 @@ import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease._
 
 def repository(isSnapshot: Boolean) = {
-    val nexus = "https://oss.sonatype.org/"
-        if (isSnapshot)
-            Some("snapshots" at nexus + "content/repositories/snapshots")
-        else
-            Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 lazy val commonSettings = Seq(
@@ -23,7 +23,7 @@ lazy val commonSettings = Seq(
     connection = "git://github.com/dropwizard/dropwizard-scala.git",
     devConnection = Option("git@github.com@:dropwizard/dropwizard-scala.git")
   )),
-  scalaVersion := "2.12.1",
+  scalaVersion := "2.12.18",
   crossScalaVersions := Seq("2.11.11", "2.12.2"),
   scalacOptions ++=
     "-deprecation" ::
@@ -31,11 +31,12 @@ lazy val commonSettings = Seq(
       "-language:implicitConversions" ::
       "-language:higherKinds" ::
       "-feature" ::
+      "-release:11" ::
       Nil,
 
-  javacOptions ++= "-source" :: "1.8" :: "-target" :: "1.8" :: Nil,
+  javacOptions ++= "-source" :: "1.8" :: "-target" :: "11" :: Nil,
   resolvers in ThisBuild ++= Seq(
-    "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
+    //    "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/.m2/repository",
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   ),
   libraryDependencies ++= Seq(
@@ -76,7 +77,7 @@ lazy val core = (project in file("core"))
     normalizedName := "dropwizard-scala-core",
     commonSettings
   )
-  .dependsOn(jersey, validation, metrics, test % "test", jdbi % "test")
+  .dependsOn(jersey, validation, test % "test")
 
 lazy val jersey = (project in file("jersey"))
   .settings(
@@ -89,20 +90,6 @@ lazy val validation = (project in file("validation"))
   .settings(
     name := "Dropwizard scala validation",
     normalizedName := "dropwizard-scala-validation",
-    commonSettings
-  )
-
-lazy val jdbi = (project in file("jdbi"))
-  .settings(
-    name := "Dropwizard scala jdbi",
-    normalizedName := "dropwizard-scala-jdbi",
-    commonSettings
-  )
-
-lazy val metrics = (project in file("metrics"))
-  .settings(
-    name := "Dropwizard scala metrics",
-    normalizedName := "dropwizard-scala-metrics",
     commonSettings
   )
 
@@ -123,5 +110,5 @@ lazy val parent = (project in file("."))
     packageBin in Global := file(""),
     packagedArtifacts := Map()
   )
-  .aggregate(core, jersey, jdbi, validation, metrics, test)
+  .aggregate(core, jersey, validation, test)
 

@@ -1,24 +1,19 @@
 package com.datasift.dropwizard.scala
 
+import com.codahale.metrics.MetricRegistry
+import com.datasift.dropwizard.scala.test.{ApplicationTest, BeforeAndAfterAllMulti, LiquibaseTest, MySQLTest}
+import com.datasift.dropwizard.scala.validation.constraints._
+import com.google.common.io.Resources
+import io.dropwizard.Configuration
+import io.dropwizard.db.DataSourceFactory
+import io.dropwizard.setup.Environment
+import org.scalatest.FlatSpec
+
 import java.io.File
 import java.util.UUID
-import javax.ws.rs.client.Entity
-
-import com.codahale.metrics.MetricRegistry
-import com.datasift.dropwizard.jdbi.tweak.BindProduct
-import com.datasift.dropwizard.scala.test.{ApplicationTest, BeforeAndAfterAllMulti, LiquibaseTest, MySQLTest}
-import io.dropwizard.db.DataSourceFactory
-import org.scalatest.FlatSpec
-import com.datasift.dropwizard.scala.validation.constraints._
-import io.dropwizard.setup.Environment
-import io.dropwizard.Configuration
-import com.google.common.io.Resources
 import javax.ws.rs._
+import javax.ws.rs.client.Entity
 import javax.ws.rs.core.{Form, MediaType}
-
-import org.skife.jdbi.v2.sqlobject.customizers.SingleValueResult
-import org.skife.jdbi.v2.sqlobject.{Bind, SqlQuery, SqlUpdate}
-
 import scala.util.{Success, Try}
 
 case class ScalaTestConfiguration(
@@ -29,7 +24,7 @@ case class ScalaTestConfiguration(
 
 @Consumes(Array(MediaType.APPLICATION_JSON))
 @Produces(Array(MediaType.APPLICATION_JSON))
-@Path("/") class ScalaTestResource(db: TestDAO, greeting: String, names: List[String]) {
+@Path("/") class ScalaTestResource( greeting: String, names: List[String]) {
 
   @GET def greet = greetWithList(names)
 
@@ -85,26 +80,26 @@ case class ScalaTestConfiguration(
     greeting.format(name.get)
   }
 
-  @POST @Path("/db/separate") @Consumes(Array(MediaType.APPLICATION_FORM_URLENCODED))
-  def insertSeparate(@FormParam("decimal") decimal: BigDecimal,
-                     @FormParam("option") option: Option[String]): Int = {
-    db.insert(decimal, option)
-  }
-
-  @POST @Path("/db/row")
-  def insertRow(row: Row): Int = {
-    db.insert(row)
-  }
-
-  @POST @Path("/db/rowT")
-  def insertRow(row: (BigDecimal, Option[String])): Int = {
-    db.insertT(row)
-  }
-
-  @GET @Path("/db/row")
-  def getRow: Option[Row] = {
-    db.get()
-  }
+//  @POST @Path("/db/separate") @Consumes(Array(MediaType.APPLICATION_FORM_URLENCODED))
+//  def insertSeparate(@FormParam("decimal") decimal: BigDecimal,
+//                     @FormParam("option") option: Option[String]): Int = {
+//    db.insert(decimal, option)
+//  }
+//
+//  @POST @Path("/db/row")
+//  def insertRow(row: Row): Int = {
+//    db.insert(row)
+//  }
+//
+//  @POST @Path("/db/rowT")
+//  def insertRow(row: (BigDecimal, Option[String])): Int = {
+//    db.insertT(row)
+//  }
+//
+//  @GET @Path("/db/row")
+//  def getRow: Option[Row] = {
+//    db.get()
+//  }
 
   private def greetNames(names: Iterable[String]): List[String] =
     names.map(greeting.format(_)).toList
@@ -112,33 +107,33 @@ case class ScalaTestConfiguration(
 }
 
 object ScalaTestApp extends ScalaApplication[ScalaTestConfiguration] {
-  import jdbi._
+//  import jdbi._
   def run(configuration: ScalaTestConfiguration, environment: Environment) {
-    val dao = JDBI(environment, configuration.db, "test").daoFor[TestDAO]
+//    val dao = JDBI(environment, configuration.db, "test").daoFor[TestDAO]
     environment.jersey
-      .register(new ScalaTestResource(dao, configuration.greeting.get, configuration.names))
+      .register(new ScalaTestResource(configuration.greeting.get, configuration.names))
   }
 }
 
-trait TestDAO {
-
-  @SqlUpdate("INSERT INTO tbl (d, o) VALUES (:d, :o)")
-  def insert(@Bind("d") x: BigDecimal,
-             @Bind("o") y: Option[String]): Int
-
-  @SqlUpdate("INSERT INTO tbl (d, o) VALUES (:row.d, :row.o)")
-  def insert(@BindProduct("row") row: Row): Int
-
-  @SqlUpdate("INSERT INTO tbl (d, o) VALUES (:row._1, :row._2)")
-  def insertT(@BindProduct("row") row: (BigDecimal, Option[String])): Int
-
-  @SingleValueResult
-  @SqlQuery("SELECT d, o FROM tbl")
-  def get(): Option[Row]
-
-  @SqlQuery("select d from tbl")
-  def debug(): String
-}
+//trait TestDAO {
+//
+//  @SqlUpdate("INSERT INTO tbl (d, o) VALUES (:d, :o)")
+//  def insert(@Bind("d") x: BigDecimal,
+//             @Bind("o") y: Option[String]): Int
+//
+//  @SqlUpdate("INSERT INTO tbl (d, o) VALUES (:row.d, :row.o)")
+//  def insert(@BindProduct("row") row: Row): Int
+//
+//  @SqlUpdate("INSERT INTO tbl (d, o) VALUES (:row._1, :row._2)")
+//  def insertT(@BindProduct("row") row: (BigDecimal, Option[String])): Int
+//
+//  @SingleValueResult
+//  @SqlQuery("SELECT d, o FROM tbl")
+//  def get(): Option[Row]
+//
+//  @SqlQuery("select d from tbl")
+//  def debug(): String
+//}
 
 case class Row(d: BigDecimal, o: Option[String])
 
